@@ -19,20 +19,15 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.github.muellerma.nfcreader.model.ScanHistory
+import com.github.muellerma.nfcreader.model.Tote
 import com.github.muellerma.nfcreader.record.ParsedNdefRecord
 import com.github.muellerma.nfcreader.repository.ScanResult
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import java.text.SimpleDateFormat
 import java.util.*
-
-@Serializable
-data class Tote(val id: Long? = null, val tote_id: String)
-
-@Serializable
-data class ScanHistory(val tote_id: Long, val action: String)
 
 class MainActivity : AppCompatActivity() {
     private var tagList: LinearLayout? = null
@@ -300,12 +295,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .show()
-    }
-
-    private fun sendScanToSupabase(toteIdText: String) {
-        // This method is now deprecated, replaced by scanToteWithFeedback
-        // Keeping for compatibility, but redirecting to new method
-        scanToteWithFeedback(toteIdText)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

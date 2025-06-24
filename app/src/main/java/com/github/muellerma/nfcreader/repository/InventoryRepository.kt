@@ -2,8 +2,8 @@ package com.github.muellerma.nfcreader.repository
 
 import androidx.lifecycle.LiveData
 import com.github.muellerma.nfcreader.App
-import com.github.muellerma.nfcreader.Tote
-import com.github.muellerma.nfcreader.ScanHistory
+import com.github.muellerma.nfcreader.model.Tote
+import com.github.muellerma.nfcreader.model.ScanHistory
 import com.github.muellerma.nfcreader.data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
