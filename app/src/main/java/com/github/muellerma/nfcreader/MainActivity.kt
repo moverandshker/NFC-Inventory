@@ -18,24 +18,45 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.github.muellerma.nfcreader.record.ParsedNdefRecord
+import com.github.muellerma.nfcreader.repository.ScanResult
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.text.SimpleDateFormat
 import java.util.*
+
+@Serializable
+data class Tote(val id: Long? = null, val tote_id: String)
+
+@Serializable
+data class ScanHistory(val tote_id: Long, val action: String)
 
 class MainActivity : AppCompatActivity() {
     private var tagList: LinearLayout? = null
     private var nfcAdapter: NfcAdapter? = null
+    private lateinit var repository: com.github.muellerma.nfcreader.repository.InventoryRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         tagList = findViewById<View>(R.id.list) as LinearLayout
+        
+        // Initialize repository from App
+        repository = (application as App).repository
+        
         resolveIntent(intent)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         if (nfcAdapter == null) {
             showNoNfcDialog()
             return
+        }
+        
+        // Start background sync
+        lifecycleScope.launch {
+            repository.syncToSupabase()
         }
     }
 
@@ -222,13 +243,69 @@ class MainActivity : AppCompatActivity() {
         val records = NdefMessageParser.parse(msgs[0])
         val size = records.size
         for (i in 0 until size) {
+            val record: ParsedNdefRecord = records[i]
+            if (record is com.github.muellerma.nfcreader.record.TextRecord) {
+                val textRecord = record as com.github.muellerma.nfcreader.record.TextRecord
+                if (textRecord.getText().startsWith("tote_id:")) {
+                    val toteId = textRecord.getText().removePrefix("tote_id:").trim()
+                    scanToteWithFeedback(toteId)
+                }
+            }
             val timeView = TextView(this)
             timeView.text = TIME_FORMAT.format(now)
             content!!.addView(timeView, 0)
-            val record: ParsedNdefRecord = records[i]
             content.addView(record.getView(this, inflater, content, i), 1 + i)
             content.addView(inflater.inflate(R.layout.tag_divider, content, false), 2 + i)
         }
+    }
+
+    private fun scanToteWithFeedback(toteId: String) {
+        lifecycleScope.launch {
+            try {
+                when (val result = repository.scanTote(toteId)) {
+                    is ScanResult.Success -> {
+                        val message = "✅ Scanned tote: $toteId"
+                        showSuccessFeedback(message)
+                        
+                        // Try background sync
+                        repository.syncToSupabase()
+                    }
+                    is ScanResult.Error -> {
+                        showErrorFeedback("❌ Scan failed: ${result.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                showErrorFeedback("❌ Scan error: ${e.message}")
+            }
+        }
+    }
+
+    private fun showSuccessFeedback(message: String) {
+        Snackbar.make(tagList!!, message, Snackbar.LENGTH_LONG)
+            .setBackgroundTint(getColor(android.R.color.holo_green_light))
+            .setAction("SYNC") {
+                lifecycleScope.launch {
+                    repository.syncToSupabase()
+                }
+            }
+            .show()
+    }
+
+    private fun showErrorFeedback(message: String) {
+        Snackbar.make(tagList!!, message, Snackbar.LENGTH_LONG)
+            .setBackgroundTint(getColor(android.R.color.holo_red_light))
+            .setAction("RETRY") {
+                lifecycleScope.launch {
+                    repository.syncToSupabase()
+                }
+            }
+            .show()
+    }
+
+    private fun sendScanToSupabase(toteIdText: String) {
+        // This method is now deprecated, replaced by scanToteWithFeedback
+        // Keeping for compatibility, but redirecting to new method
+        scanToteWithFeedback(toteIdText)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

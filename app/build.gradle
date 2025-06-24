@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -49,4 +51,21 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.13.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
+
+    // Room database for offline caching
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
+    
+    // Lifecycle components
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
+    
+    // Work Manager for background sync
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+
+    implementation "io.supabase.kt:postgrest-kt:2.4.0"
+    implementation "io.supabase.kt:gotrue-kt:2.4.0"
+    implementation "io.ktor:ktor-client-cio:2.3.11"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 }
