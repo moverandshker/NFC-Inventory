@@ -304,6 +304,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.menu_main_inventory -> {
+                val intent = Intent(this, com.github.muellerma.nfcreader.ui.InventoryActivity::class.java)
+                startActivity(intent)
+                true
+            }
             R.id.menu_main_clear -> {
                 clearTags()
                 true

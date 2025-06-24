@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+            android:id="@+id/menu_main_inventory"
+            android:icon="@drawable/ic_list_24"
+            app:showAsAction="ifRoom"
+            android:title="Inventory" />
+    <item
             android:id="@+id/menu_main_clear"
             app:showAsAction="never"
             android:title="@string/clear_all" />
